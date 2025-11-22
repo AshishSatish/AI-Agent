@@ -1,359 +1,261 @@
-# Company Research Assistant - Account Plan Generator
+# Company Research Assistant
 
-An AI-powered interactive assistant that helps research companies and generate comprehensive account plans through natural conversation. Supports both chat and voice interaction modes.
+AI-powered system that automates company research and generates comprehensive account plans for sales and business development teams.
+
+---
 
 ## Features
 
-- **Conversational AI**: Natural language interaction using Groq API
-- **Multi-Source Research**: Gathers information from web search (SerpAPI)
-- **Intelligent Synthesis**: Consolidates findings from multiple sources
-- **Conflict Detection**: Identifies contradicting information and alerts users
-- **Account Plan Generation**: Creates structured account plans automatically
-- **Interactive Updates**: Allows editing specific sections of account plans
-- **Dual Interface**: Web-based chat and voice interaction modes
-- **Real-time Updates**: WebSocket support for live research progress
-- **Persistent Storage**: Saves account plans for future reference
+- Natural language chat interface
+- Multi-source research (25+ web sources via SerpAPI)
+- AI-powered data synthesis with conflict detection
+- Automated 9-section account plan generation
+- Section-specific updates
+- Real-time progress via WebSockets
+- Voice input support
+- Clean Perplexity-inspired UI
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.8+
+- [Groq API Key](https://console.groq.com/)
+- [SerpAPI Key](https://serpapi.com/)
+
+### Installation
+
+**Windows:**
+```bash
+setup.bat
+# Edit .env with your API keys
+venv\Scripts\activate
+python run.py
+```
+
+**Mac/Linux:**
+```bash
+chmod +x setup.sh && ./setup.sh
+# Edit .env with your API keys
+source venv/bin/activate
+python run.py
+```
+
+Open browser: `http://localhost:8000`
+
+### Manual Setup
+
+```bash
+# 1. Create virtual environment
+python -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Configure
+cp .env.example .env
+# Add your API keys to .env
+
+# 4. Run
+python run.py --mode web
+```
+
+---
+
+## Usage
+
+1. **Research**: Click "Quick Research" → Enter company name → Wait for synthesis
+2. **Generate Plan**: Click "Generate Plan" after research completes
+3. **Update**: Select section → Enter new content → Update
+4. **Chat**: Type natural language queries for contextual responses
+5. **Voice**: Click microphone icon (Chrome/Edge only)
+
+---
 
 ## Architecture
 
 ```
-company-research-assistant/
-├── app/
-│   ├── __init__.py           # Package initialization
-│   ├── main.py               # FastAPI web application
-│   ├── agent.py              # Conversational agent (Groq integration)
-│   ├── researcher.py         # Multi-source research orchestrator
-│   ├── synthesizer.py        # Data synthesis engine
-│   ├── account_plan.py       # Account plan generator
-│   ├── voice.py              # Voice interaction module
-│   └── config.py             # Configuration management
-├── templates/
-│   └── index.html            # Web UI
-├── static/                   # Static assets
-├── data/                     # Saved account plans
-├── requirements.txt          # Python dependencies
-├── .env.example              # Environment variables template
-├── run.py                    # Application entry point
-└── README.md                 # This file
+User Interface (HTML/JS)
+         ↓
+    FastAPI Server
+         ↓
+    ┌────┴────┬────────┬───────────┐
+    ↓         ↓        ↓           ↓
+  Agent   Researcher Synthesizer  Plan Gen
+    ↓         ↓        ↓           ↓
+  Groq     SerpAPI   Groq        Groq
 ```
 
-## Prerequisites
+### Components
 
-- Python 3.8 or higher
-- Groq API key ([Get one here](https://console.groq.com))
-- SerpAPI key ([Get one here](https://serpapi.com))
+- **Agent** (`app/agent.py`): Conversational AI using Groq LLM
+- **Researcher** (`app/researcher.py`): Multi-source web search via SerpAPI
+- **Synthesizer** (`app/synthesizer.py`): Data consolidation with conflict detection
+- **Plan Generator** (`app/account_plan.py`): Structured account plan creation
+- **FastAPI Server** (`app/main.py`): REST API + WebSocket server
+- **Frontend** (`templates/index.html`): Vanilla JS, Perplexity-style UI
 
-## Installation
+---
 
-### 1. Clone or Download the Project
+## Design Decisions
 
-Navigate to the project directory:
-```bash
-cd "C:\Users\ashis\OneDrive\Desktop\AI Agent"
-```
+### Technology Choices
 
-### 2. Create Virtual Environment
+**Groq API (vs OpenAI)**
+- 10-20× faster inference
+- Free tier: 30 requests/min
+- Quality comparable to GPT-4
 
-**Windows:**
-```bash
-python -m venv venv
-venv\Scripts\activate
-```
+**SerpAPI (vs Direct Scraping)**
+- Legal compliance
+- Handles CAPTCHAs automatically
+- Structured JSON output
 
-**macOS/Linux:**
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
+**FastAPI (vs Flask)**
+- Native async/await support
+- Built-in WebSocket support
+- Auto-generated API docs
 
-### 3. Install Dependencies
+**In-Memory Sessions (vs Database)**
+- Zero latency
+- Simple development
+- Acceptable for MVP
 
-```bash
-pip install -r requirements.txt
-```
+**Vanilla JS (vs React/Vue)**
+- No build step
+- Single HTML file
+- Sufficient for this UI
 
-**Note for PyAudio (Voice Mode):**
-- **Windows**: PyAudio may require additional installation steps. If you encounter errors:
-  ```bash
-  pip install pipwin
-  pipwin install pyaudio
-  ```
-- **macOS**: Install PortAudio first:
-  ```bash
-  brew install portaudio
-  pip install pyaudio
-  ```
-- **Linux**: Install dependencies:
-  ```bash
-  sudo apt-get install python3-pyaudio portaudio19-dev
-  pip install pyaudio
-  ```
+**JSON Storage (vs Database)**
+- No setup required
+- Human-readable
+- Git-friendly
 
-### 4. Configure Environment Variables
+### Architecture Patterns
 
-Copy the example environment file:
-```bash
-copy .env.example .env     # Windows
-cp .env.example .env       # macOS/Linux
-```
+- **Modular Design**: Single responsibility per component
+- **Session-Based State**: Maintains conversation context
+- **LLM Prompt Engineering**: JSON schemas for structured output
+- **Loose Coupling**: Easy to swap implementations
 
-Edit `.env` and add your API keys:
+---
+
+## Configuration
+
+Edit `.env`:
+
 ```env
+# Required
 GROQ_API_KEY=your_groq_api_key_here
 SERPAPI_KEY=your_serpapi_key_here
 
-# Optional settings
+# Optional
 APP_HOST=0.0.0.0
 APP_PORT=8000
 DEBUG=True
-GROQ_MODEL=mixtral-8x7b-32768
+GROQ_MODEL=llama-3.3-70b-versatile
 MAX_RESEARCH_SOURCES=5
 ```
 
-## Usage
-
-### Web Mode (Default)
-
-Start the web application:
-```bash
-python run.py --mode web
-```
-
-Or simply:
-```bash
-python run.py
-```
-
-Then open your browser to: **http://localhost:8000**
-
-### Voice Mode
-
-Start voice interaction mode:
-```bash
-python run.py --mode voice
-```
-
-Speak naturally to the assistant. Say "exit", "quit", or "goodbye" to end the session.
-
-## Using the Application
-
-### Web Interface
-
-1. **Chat**: Type messages in the input box to converse with the assistant
-2. **Quick Research**: Click "Quick Research" and enter a company name
-3. **Generate Plan**: After research, click "Generate Plan" to create an account plan
-4. **Update Sections**: Use the update form to modify specific plan sections
-5. **View Plans**: Click "View Plans" to see all saved account plans
-6. **Voice Input**: Click the microphone button for voice input (Chrome/Edge only)
-
-### Example Workflow
-
-1. **Start Research**:
-   ```
-   User: "Tell me about Microsoft"
-   Assistant: "I'll research Microsoft for you..."
-   ```
-
-2. **Review Findings**:
-   - Research summary appears in the left panel
-   - Conflicts (if any) are highlighted
-
-3. **Generate Account Plan**:
-   ```
-   User: "Generate an account plan"
-   Assistant: "Creating account plan..."
-   ```
-
-4. **Update Sections**:
-   - Section path: `executive_summary`
-   - New content: Your updated content
-   - Click "Update"
-
-5. **Save and Export**:
-   - Plans are automatically saved to the `data/` folder
-   - Accessible via "View Plans"
+---
 
 ## API Endpoints
 
-### Chat
-```http
-POST /api/chat
-Content-Type: application/json
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Web interface |
+| `/api/chat` | POST | Chat message |
+| `/api/research` | POST | Research company |
+| `/api/generate-plan` | POST | Generate account plan |
+| `/api/update-plan` | POST | Update plan section |
+| `/api/plans` | GET | List saved plans |
+| `/api/plans/{filename}` | GET | Get specific plan |
+| `/ws/{session_id}` | WebSocket | Real-time updates |
 
-{
-  "message": "Tell me about Tesla",
-  "session_id": "optional_session_id"
-}
-```
+**Auto-generated docs:** `http://localhost:8000/docs`
 
-### Research Company
-```http
-POST /api/research
-Content-Type: application/json
-
-{
-  "company_name": "Tesla",
-  "session_id": "optional_session_id"
-}
-```
-
-### Generate Account Plan
-```http
-POST /api/generate-plan
-Content-Type: application/json
-
-{
-  "company_name": "Tesla",
-  "session_id": "optional_session_id"
-}
-```
-
-### Update Plan Section
-```http
-POST /api/update-plan
-Content-Type: application/json
-
-{
-  "section_path": "executive_summary",
-  "new_content": "Updated content here",
-  "session_id": "optional_session_id"
-}
-```
-
-### List Plans
-```http
-GET /api/plans
-```
-
-### Get Specific Plan
-```http
-GET /api/plans/{filename}
-```
-
-## WebSocket Support
-
-Connect to WebSocket for real-time updates:
-```javascript
-const ws = new WebSocket('ws://localhost:8000/ws/session_id');
-
-ws.send(JSON.stringify({
-  action: 'research',
-  company_name: 'Tesla'
-}));
-
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data);
-  console.log(data);
-};
-```
-
-## Account Plan Structure
-
-Generated account plans include:
-- **Executive Summary**: High-level overview
-- **Company Background**: Overview, size, industry, location
-- **Products & Services**: Offerings and differentiators
-- **Market Analysis**: Position, competitors, trends
-- **Key Stakeholders**: Decision makers and influencers
-- **Opportunity Assessment**: Needs, pain points, opportunities
-- **Engagement Strategy**: Approach, value proposition, next steps
-- **Risks & Challenges**: Potential obstacles
-- **Success Metrics**: KPIs and measurement criteria
-
-## Customization
-
-### Change AI Model
-
-Edit `.env`:
-```env
-GROQ_MODEL=llama2-70b-4096  # or another supported model
-```
-
-### Adjust Research Depth
-
-Edit `.env`:
-```env
-MAX_RESEARCH_SOURCES=10  # Increase for more comprehensive research
-```
-
-### Modify System Prompt
-
-Edit `app/agent.py`, update the `system_prompt` in `ConversationalAgent.__init__()`.
+---
 
 ## Troubleshooting
 
-### "No module named 'app'"
-- Make sure you're in the project directory
-- Ensure the virtual environment is activated
-
-### "API key not found"
-- Check that `.env` file exists and contains valid API keys
-- Restart the application after updating `.env`
-
-### Voice mode not working
-- Install PyAudio dependencies (see installation section)
-- Check microphone permissions
-- Try a different browser for web-based voice input
-
-### Research returns no results
-- Verify SerpAPI key is valid and has remaining credits
-- Check internet connection
-- Try a different company name
-
-## Development
-
-### Run in Debug Mode
+**Port in use:**
 ```bash
-# Already enabled in .env by default
-DEBUG=True
+# Windows: netstat -ano | findstr :8000 && taskkill /PID <PID> /F
+# Mac/Linux: lsof -ti:8000 | xargs kill -9
 ```
 
-### Add New Research Sources
+**API key errors:** Verify `.env` exists with valid keys, restart server
 
-Edit `app/researcher.py` and add methods to the `CompanyResearcher` class.
+**Import errors:** `pip install --upgrade -r requirements.txt`
 
-### Customize Account Plan Template
+**Voice not working:** Use Chrome/Edge, check microphone permissions
 
-Edit `app/account_plan.py`, modify the `generate_plan()` method's prompt.
+---
 
-## Cost Considerations
+## Project Structure
 
-- **Groq API**: Generally free tier available, check current limits
-- **SerpAPI**: Free tier includes 100 searches/month
-- Monitor your API usage in respective dashboards
+```
+AI Agent/
+├── app/
+│   ├── agent.py              # Conversational AI
+│   ├── researcher.py         # Web research
+│   ├── synthesizer.py        # Data synthesis
+│   ├── account_plan.py       # Plan generation
+│   ├── main.py               # FastAPI server
+│   ├── config.py             # Configuration
+│   └── voice.py              # Voice I/O
+├── templates/
+│   └── index.html            # Web UI
+├── data/                     # Saved plans (JSON)
+├── .env                      # API keys (not in repo)
+├── .env.example              # Environment template
+├── .gitignore                # Git ignore rules
+├── requirements.txt          # Dependencies
+├── run.py                    # Entry point
+└── README.md                 # This file
+```
 
-## Security Notes
+---
 
-- Never commit `.env` file to version control
-- Keep API keys confidential
-- Use environment variables for sensitive data
-- Consider rate limiting for production deployments
+## Performance
 
-## Future Enhancements
+- Chat: 1-2 seconds
+- Research: 10-30 seconds (5 sequential queries)
+- Plan Generation: 5-10 seconds
 
-Potential additions:
-- Integration with company databases (Crunchbase, LinkedIn)
-- Export plans to PDF/Word
-- Email integration for sending plans
-- Multi-user support with authentication
-- Advanced analytics and visualizations
-- Custom plan templates
-- Integration with CRM systems
+**Optimization ideas:** Parallel queries, caching, database for production
 
-## Support
+---
 
-For issues or questions:
-1. Check the troubleshooting section
-2. Review API documentation (Groq, SerpAPI)
-3. Ensure all dependencies are installed correctly
+## Cost Estimate
+
+**Development (Free):**
+- Groq: 30 req/min
+- SerpAPI: 100 searches/month
+
+**Production (~$60-100/month):**
+- Groq: ~$0.10 per 1M tokens
+- SerpAPI: $50/month
+- Hosting: $10-50/month
+
+---
 
 ## License
 
-This project is provided as-is for educational and commercial use.
+MIT License - Free for personal and commercial use.
+
+---
 
 ## Acknowledgments
 
-- Built with [FastAPI](https://fastapi.tiangolo.com/)
-- AI powered by [Groq](https://groq.com/)
-- Search powered by [SerpAPI](https://serpapi.com/)
-- Voice capabilities via [SpeechRecognition](https://github.com/Uberi/speech_recognition) and [pyttsx3](https://github.com/nateshmbhat/pyttsx3)
+- [FastAPI](https://fastapi.tiangolo.com/) - Web framework
+- [Groq](https://groq.com/) - LLM inference
+- [SerpAPI](https://serpapi.com/) - Web search
+- [Perplexity](https://www.perplexity.ai/) - UI inspiration
+
+---
+
+For detailed technical documentation, see `TECHNICAL_DOCUMENTATION.txt`
