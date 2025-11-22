@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Research Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #fafafa;
+            color: #202020;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #ffffff;
+            border-right: 1px solid #e8e8e8;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, width 0.3s ease;
+            position: relative;
+            z-index: 100;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-280px);
+            width: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: #000000;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo h1 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #000000;
+            letter-spacing: -0.3px;
+        }
+
+        .logo p {
+            font-size: 12px;
+            color: #6b6b6b;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+            overflow-y: auto;
+        }
+
+        .nav-btn {
+            width: 100%;
+            padding: 11px 14px;
+            margin-bottom: 6px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: #404040;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .nav-btn.primary {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .nav-btn.primary:hover {
+            background: #1a1a1a;
+        }
+
+        .nav-btn svg {
+            width: 18px;
+            height: 18px;
+            opacity: 0.7;
+        }
+
+        .nav-btn.primary svg {
+            opacity: 1;
+        }
+
+        /* Toggle Button */
+        .sidebar-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background: #ffffff;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 101;
+        }
+
+        .sidebar-toggle:hover {
+            background: #f5f5f5;
+        }
+
+        .sidebar-toggle.with-sidebar {
+            left: 300px;
+        }
+
+        .sidebar-toggle svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: margin-left 0.3s ease;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 80px 32px 32px;
+        }
+
+        /* Chat Container */
+        .chat-section {
+            max-width: 800px;
+            margin: 0 auto 32px;
+        }
+
+        .messages {
+            max-height: 450px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 14px 18px;
+            border-radius: 10px;
+            max-width: 90%;
+            line-height: 1.6;
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .message.user {
+            background: #000000;
+            color: #ffffff;
+            margin-left: auto;
+        }
+
+        .message.assistant {
+            background: #ffffff;
+            color: #202020;
+            border: 1px solid #e8e8e8;
+        }
+
+        .message.status {
+            background: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fef3c7;
+            text-align: center;
+            margin: 12px auto;
+            max-width: 100%;
+            font-size: 13px;
+        }
+
+        .message.conflict {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            border-left: 3px solid #dc2626;
+        }
+
+        .input-wrapper {
+            background: #ffffff;
+            border: 1px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            transition: border-color 0.2s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #000000;
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            color: #202020;
+        }
+
+        .input-wrapper input::placeholder {
+            color: #9b9b9b;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+
+        .icon-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .icon-btn.primary {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .icon-btn.primary:hover {
+            background: #1a1a1a;
+        }
+
+        .icon-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .icon-btn.recording {
+            background: #dc2626;
+            color: #ffffff;
+        }
+
+        .icon-btn.recording:hover {
+            background: #b91c1c;
+        }
+
+        /* Panels */
+        .panels-grid {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .panel {
+            background: #ffffff;
+            border: 1px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .panel-header svg {
+            width: 20px;
+            height: 20px;
+            opacity: 0.6;
+        }
+
+        .panel-header h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #000000;
+            letter-spacing: -0.2px;
+        }
+
+        .output-area {
+            background: #fafafa;
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            color: #404040;
+        }
+
+        /* Update Form */
+        .update-form {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .update-form h4 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #404040;
+        }
+
+        .update-form input,
+        .update-form textarea {
+            width: 100%;
+            padding: 11px 14px;
+            margin-bottom: 12px;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .update-form input:focus,
+        .update-form textarea:focus {
+            border-color: #000000;
+        }
+
+        .update-form textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 9px 18px;
+            border-radius: 8px;
+            border: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primary {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #1a1a1a;
+        }
+
+        .btn-secondary {
+            background: #ffffff;
+            color: #404040;
+            border: 1px solid #e8e8e8;
+        }
+
+        .btn-secondary:hover {
+            background: #f5f5f5;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d4d4d4;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a3a3a3;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .panels-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                height: 100vh;
+                box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            }
+
+            .sidebar-toggle.with-sidebar {
+                left: 20px;
+            }
+
+            .content-area {
+                padding: 80px 20px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Toggle -->
+    <button class="sidebar-toggle with-sidebar" id="sidebarToggle" onclick="toggleSidebar()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+    </button>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg fill="white" viewBox="0 0 24 24" width="20" height="20">
+                        <path d="M9 2a1 1 0 0 0 0 2h2a1 1 0 1 0 0-2H9zm4 0a1 1 0 1 0 0 2h2a1 1 0 1 0 0-2h-2zm-3 4a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2h-2a1 1 0 0 1-1-1zm-5 4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V10z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>Research Assistant</h1>
+                    <p>AI-Powered Insights</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <button class="nav-btn primary" onclick="resetSession()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                New Session
+            </button>
+            <button class="nav-btn" onclick="quickResearch()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                Quick Research
+            </button>
+            <button class="nav-btn" onclick="generatePlan()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Generate Plan
+            </button>
+            <button class="nav-btn" onclick="showPlans()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                </svg>
+                Saved Plans
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="content-area">
+            <!-- Chat Section -->
+            <div class="chat-section">
+                <div class="messages" id="messages"></div>
+
+                <div class="input-wrapper">
+                    <input
+                        type="text"
+                        id="messageInput"
+                        placeholder="Ask about a company..."
+                        onkeypress="if(event.key==='Enter') sendMessage()"
+                    >
+                    <button class="icon-btn" id="voiceBtn" onclick="toggleVoice()" title="Voice Input">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn primary" onclick="sendMessage()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panels -->
+            <div class="panels-grid">
+                <div class="panel">
+                    <div class="panel-header">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        <h3>Research Summary</h3>
+                    </div>
+                    <div class="output-area" id="researchOutput">No research conducted yet. Start by asking about a company!</div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <h3>Account Plan</h3>
+                    </div>
+                    <div class="output-area" id="planOutput">No account plan generated yet.</div>
+
+                    <div class="update-form" id="updateForm" style="display: none;">
+                        <h4>Update Section</h4>
+                        <input type="text" id="sectionPath" placeholder="e.g., executive_summary">
+                        <textarea id="newContent" placeholder="Enter new content..."></textarea>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick="updatePlanSection()">Update</button>
+                            <button class="btn btn-secondary" onclick="document.getElementById('updateForm').style.display='none'">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sessionId = 'session_' + Date.now();
+        let currentCompany = '';
+        let isRecording = false;
+        let sidebarOpen = true;
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.getElementById('sidebarToggle');
+            sidebarOpen = !sidebarOpen;
+
+            if (sidebarOpen) {
+                sidebar.classList.remove('collapsed');
+                toggle.classList.add('with-sidebar');
+            } else {
+                sidebar.classList.add('collapsed');
+                toggle.classList.remove('with-sidebar');
+            }
+        }
+
+        function addMessage(content, type = 'assistant') {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = content;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addMessage(message, 'user');
+            input.value = '';
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, session_id: sessionId })
+                });
+                const data = await response.json();
+                addMessage(data.response, 'assistant');
+                if (data.intent?.intent === 'research_company' && data.intent.company_name) {
+                    currentCompany = data.intent.company_name;
+                }
+            } catch (error) {
+                addMessage('Error: ' + error.message, 'status');
+            }
+        }
+
+        async function quickResearch() {
+            const company = prompt('Enter company name:');
+            if (!company) return;
+            currentCompany = company;
+            addMessage(`Researching ${company}...`, 'status');
+
+            try {
+                const response = await fetch('/api/research', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ company_name: company, session_id: sessionId })
+                });
+                const data = await response.json();
+                document.getElementById('researchOutput').textContent = data.summary;
+                addMessage(`Research complete! Analyzed ${data.total_sources} sources.`, 'status');
+                if (data.conflicts?.length > 0) {
+                    addMessage('⚠ Conflicts: ' + data.conflicts.join('; '), 'conflict');
+                }
+            } catch (error) {
+                addMessage('Error: ' + error.message, 'status');
+            }
+        }
+
+        async function generatePlan() {
+            if (!currentCompany) {
+                addMessage('Please research a company first!', 'status');
+                return;
+            }
+            addMessage(`Generating account plan for ${currentCompany}...`, 'status');
+
+            try {
+                const response = await fetch('/api/generate-plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ company_name: currentCompany, session_id: sessionId })
+                });
+                const data = await response.json();
+                document.getElementById('planOutput').textContent = data.formatted_plan;
+                addMessage(`Account plan generated!`, 'status');
+                document.getElementById('updateForm').style.display = 'block';
+            } catch (error) {
+                addMessage('Error: ' + error.message, 'status');
+            }
+        }
+
+        async function updatePlanSection() {
+            const sectionPath = document.getElementById('sectionPath').value;
+            const newContent = document.getElementById('newContent').value;
+            if (!sectionPath || !newContent) {
+                alert('Please fill in both fields');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/update-plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ section_path: sectionPath, new_content: newContent, session_id: sessionId })
+                });
+                const data = await response.json();
+                document.getElementById('planOutput').textContent = data.formatted_plan;
+                addMessage(`Section updated!`, 'status');
+                document.getElementById('sectionPath').value = '';
+                document.getElementById('newContent').value = '';
+            } catch (error) {
+                addMessage('Error: ' + error.message, 'status');
+            }
+        }
+
+        async function showPlans() {
+            try {
+                const response = await fetch('/api/plans');
+                const data = await response.json();
+                const plansList = data.plans.map(p => `- ${p}`).join('\n');
+                document.getElementById('planOutput').textContent = `Saved Plans (${data.total}):\n\n${plansList}`;
+                addMessage(`Found ${data.total} saved plans`, 'status');
+            } catch (error) {
+                addMessage('Error: ' + error.message, 'status');
+            }
+        }
+
+        async function resetSession() {
+            try {
+                await fetch('/api/reset-session?session_id=' + sessionId, { method: 'POST' });
+                document.getElementById('messages').innerHTML = '';
+                document.getElementById('researchOutput').textContent = 'No research conducted yet. Start by asking about a company!';
+                document.getElementById('planOutput').textContent = 'No account plan generated yet.';
+                currentCompany = '';
+                addMessage('New session started. How can I help you?', 'assistant');
+            } catch (error) {
+                addMessage('Error: ' + error.message, 'status');
+            }
+        }
+
+        function toggleVoice() {
+            const voiceBtn = document.getElementById('voiceBtn');
+            if (!isRecording) {
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    const recognition = new SpeechRecognition();
+                    recognition.onstart = () => {
+                        isRecording = true;
+                        voiceBtn.classList.add('recording');
+                    };
+                    recognition.onresult = (event) => {
+                        document.getElementById('messageInput').value = event.results[0][0].transcript;
+                    };
+                    recognition.onend = () => {
+                        isRecording = false;
+                        voiceBtn.classList.remove('recording');
+                    };
+                    recognition.start();
+                } else {
+                    alert('Speech recognition not supported');
+                }
+            }
+        }
+
+        window.onload = () => {
+            addMessage('Hello! Ask me about any company to get started.', 'assistant');
+        };
+    </script>
+</body>
+</html>

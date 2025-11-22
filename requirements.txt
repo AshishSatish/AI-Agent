@@ -1,0 +1,28 @@
+# Core dependencies
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-dotenv==1.0.0
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# LLM and AI
+groq==0.11.0
+
+# Web scraping and search
+requests==2.31.0
+beautifulsoup4==4.12.3
+google-search-results==2.4.2
+
+# Data processing
+python-json-logger==2.0.7
+
+# Voice capabilities
+SpeechRecognition==3.10.1
+pyttsx3==2.90
+pyaudio==0.2.14
+
+# Frontend
+jinja2==3.1.3
+
+# Database (optional for persistence)
+sqlalchemy==2.0.25
